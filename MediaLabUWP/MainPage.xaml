@@ -46,7 +46,7 @@
         </ItemsPanelTemplate>
 
         <DataTemplate x:Key="ImageGridView_DefaultItemTemplate"
-                      x:DataType="local:ImageFileInfo">
+                      x:DataType="local:MediaInfo">
             <Grid Height="{Binding ItemSize, ElementName=page}"
                   Width="{Binding ItemSize, ElementName=page}"
                   Margin="{StaticResource LargeItemMargin}">
@@ -55,16 +55,16 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Image x:Name="ItemImage"
-                       Source="{x:Bind ImageSource, Mode=OneWay}"
+                       Source="{x:Bind ThumbImage, Mode=OneWay}"
                        Stretch="Uniform" />
                 <StackPanel Orientation="Vertical"
                             Grid.Row="1">
-                    <TextBlock Text="{x:Bind ImageTitle, Mode=OneWay}"
+                    <TextBlock Text="{x:Bind MediaTitle, Mode=OneWay}"
                                HorizontalAlignment="Center"
                                Style="{StaticResource SubtitleTextBlockStyle}" />
                     <StackPanel Orientation="Horizontal"
                                 HorizontalAlignment="Center">
-                        <TextBlock Text="{x:Bind ImageFileType}"
+                        <TextBlock Text="{x:Bind MediaSubTitle}"
                                    HorizontalAlignment="Center"
                                    Style="{StaticResource CaptionTextBlockStyle}" />
                         <TextBlock Text="{x:Bind ImageDimensions}"
@@ -72,7 +72,7 @@
                                    Style="{StaticResource CaptionTextBlockStyle}"
                                    Margin="8,0,0,0" />
                     </StackPanel>
-                    <telerikInput:RadRating Value="{x:Bind ImageRating, Mode=OneWay}"
+                    <telerikInput:RadRating Value="{x:Bind MediaRating, Mode=OneWay}"
                                             IsReadOnly="True">
                         <telerikInput:RadRating.FilledIconContentTemplate>
                             <DataTemplate>
@@ -100,22 +100,22 @@
         </Style>
 
         <DataTemplate x:Key="ImageGridView_MobileItemTemplate"
-                      x:DataType="local:ImageFileInfo">
+                      x:DataType="local:MediaInfo">
             <Grid Height="{Binding ItemSize, ElementName=page}"
                   Width="{Binding ItemSize, ElementName=page}">
                 <Image x:Name="ItemImage"
-                       Source="{x:Bind ImageSource}"
+                       Source="{x:Bind ThumbImage}"
                        Stretch="UniformToFill">
                     <ToolTipService.ToolTip>
                         <ToolTip x:Name="tooltip">
                             <StackPanel Orientation="Vertical"
                                         Grid.Row="1">
-                                <TextBlock Text="{x:Bind ImageTitle, Mode=OneWay}"
+                                <TextBlock Text="{x:Bind MediaTitle, Mode=OneWay}"
                                            HorizontalAlignment="Center"
                                            Style="{StaticResource SubtitleTextBlockStyle}" />
                                 <StackPanel Orientation="Horizontal"
                                             HorizontalAlignment="Center">
-                                    <TextBlock Text="{x:Bind ImageFileType}"
+                                    <TextBlock Text="{x:Bind MediaSubTitle}"
                                                HorizontalAlignment="Center"
                                                Style="{StaticResource CaptionTextBlockStyle}" />
                                     <TextBlock Text="{x:Bind ImageDimensions}"

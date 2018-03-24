@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.Storage;
+using Windows.Storage.AccessCache;
 using Windows.Storage.Streams;
 using Windows.System.Profile;
 using Windows.UI.Core;
@@ -22,9 +23,9 @@ namespace MediaLabUWP
     /// </summary>
     public sealed partial class MainPage : Page, INotifyPropertyChanged
     {
-        private ImageFileInfo persistedItem;
-
-        public ObservableCollection<ImageFileInfo> Images { get; } = new ObservableCollection<ImageFileInfo>();
+        private MediaInfo persistedItem;
+        
+        public ObservableCollection<MediaInfo> Images { get; } = new ObservableCollection<MediaInfo>();
         public event PropertyChangedEventHandler PropertyChanged;
 
         public MainPage()
@@ -37,11 +38,19 @@ namespace MediaLabUWP
             SystemNavigationManager.GetForCurrentView().AppViewBackButtonVisibility =
                 AppViewBackButtonVisibility.Collapsed;
 
-            if (Images.Count == 0)
-            {
-                await GetItemsAsync();
-            }
+            MediaLib.Lib.MediaLib.instance.initRootManagersFromLocal();
+            StorageFile file = await Package.Current.InstalledLocation.GetFileAsync("Assets\\Default\\Anime.png");
 
+            using (IRandomAccessStream fileStream = await file.OpenReadAsync())
+            {
+                BitmapImage bitmapImage = new BitmapImage();
+                bitmapImage.SetSource(fileStream);
+                MediaLib.Lib.MediaLib.instance.TravelMedium((MediaLib.Lib.Media media) =>
+                {
+                    Images.Add(new MediaInfo(media as MediaLib.Lib.Anime, bitmapImage));
+                });
+            }
+            
             base.OnNavigatedTo(e);
         }
 
@@ -61,15 +70,26 @@ namespace MediaLabUWP
             }
         }
         
-
+        private async Task ChangeImage(MediaInfo info)
+        {
+            StorageFile file= await Package.Current.InstalledLocation.GetFileAsync("Assets\\Samples\\1 (113).jpg");
+            
+            using (IRandomAccessStream fileStream = await file.OpenReadAsync())
+            {
+                BitmapImage bitmapImage = new BitmapImage();
+                bitmapImage.SetSource(fileStream);
+                info.ThumbImage = bitmapImage;
+            }
+        }
         
         private void ImageGridView_ItemClick(object sender, ItemClickEventArgs e)
         {
             // Prepare the connected animation for navigation to the detail page.
-            persistedItem = e.ClickedItem as ImageFileInfo;
+            persistedItem = e.ClickedItem as MediaInfo;
             ImageGridView.PrepareConnectedAnimation("itemAnimation", e.ClickedItem, "ItemImage");
 
-           // this.Frame.Navigate(typeof(DetailPage), e.ClickedItem);
+            // this.Frame.Navigate(typeof(DetailPage), e.ClickedItem);
+          var task =  ChangeImage(persistedItem);
         }
         
 
@@ -95,7 +115,7 @@ namespace MediaLabUWP
             }
         }
 
-        public async static Task<ImageFileInfo> LoadImageInfo(StorageFile file)
+        public async static Task<MediaInfo> LoadImageInfo(StorageFile file)
         {
             // Open a stream for the selected file.
             // The 'using' block ensures the stream is disposed
@@ -107,7 +127,7 @@ namespace MediaLabUWP
                 bitmapImage.SetSource(fileStream);
 
                 var properties = await file.Properties.GetImagePropertiesAsync();
-                ImageFileInfo info = new ImageFileInfo(
+                MediaInfo info = new MediaInfo(
                     properties, file, bitmapImage,
                     file.DisplayName, file.DisplayType);
 

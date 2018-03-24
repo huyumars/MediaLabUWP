@@ -99,6 +99,19 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="MediaInfo.cs" />
+    <Compile Include="MediaLib\Config\Config.cs" />
+    <Compile Include="MediaLib\Config\RootConfig.cs" />
+    <Compile Include="MediaLib\Config\TypeDefine.cs" />
+    <Compile Include="MediaLib\Entity\Anime.cs" />
+    <Compile Include="MediaLib\Entity\MediaLib.cs" />
+    <Compile Include="MediaLib\Entity\MediaType.cs" />
+    <Compile Include="MediaLib\Entity\Music.cs" />
+    <Compile Include="MediaLib\IO\FileIO.cs" />
+    <Compile Include="MediaLib\IO\FileTraveler.cs" />
+    <Compile Include="MediaLib\IO\ImgManager.cs" />
+    <Compile Include="MediaLib\IO\ResourceMgr.cs" />
+    <Compile Include="MediaLib\Util\Logger.cs" />
+    <Compile Include="MediaLib\Util\ThreadQueue.cs" />
     <Compile Include="MobileScreenTrigger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -106,9 +119,11 @@
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
+    <None Include="Assets\UserData\AnimeRootConfig.json" />
     <None Include="MediaLabUWP_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\Default\Anmie.png" />
     <Content Include="Assets\Samples\1 %28113%29.jpg" />
     <Content Include="Assets\Samples\1 %28270%29.jpg" />
     <Content Include="Assets\Samples\1 %28472%29.jpg" />
@@ -143,6 +158,7 @@
       <Version>1.0.0.9</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

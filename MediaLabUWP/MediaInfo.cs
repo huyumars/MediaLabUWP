@@ -7,139 +7,72 @@ using Windows.UI.Xaml.Media.Imaging;
 
 namespace MediaLabUWP
 {
-    public class ImageFileInfo : INotifyPropertyChanged
+
+
+    public class MediaInfo : INotifyPropertyChanged
     {
-        public ImageFileInfo(ImageProperties properties, StorageFile imageFile,
+        public MediaInfo(ImageProperties properties, StorageFile imageFile,
             BitmapImage src, string name, string type)
         {
-            ImageProperties = properties;
-            ImageSource = src;
-            ImageName = name;
-            ImageFileType = type;
-            ImageFile = imageFile;
+            ThumbImage = src;
+            MediaName = name;
+            MediaSubTitle = type;
             var rating = (int)properties.Rating;
             var random = new Random();
-            ImageRating = rating == 0 ? random.Next(1, 5) : rating;
+            MediaRating = rating == 0 ? random.Next(1, 5) : rating;
         }
 
-        public StorageFile ImageFile { get; }
-
-        public ImageProperties ImageProperties { get; }
-
-        private BitmapImage _imageSource = null;
-        public BitmapImage ImageSource
+        public MediaInfo(MediaLib.Lib.Anime media, BitmapImage src)
         {
-            get => _imageSource;
-            set => SetProperty(ref _imageSource, value);
+            UID = media.UID;
+            MediaName = media.title;
+            MediaTitle = media.title;
+            MediaSubTitle = media.contentDir;
+            MediaRating = (int)media.star;
+            ThumbImage = src;
         }
 
-        public string ImageName { get; }
-
-        public string ImageFileType { get; }
-
-        public string ImageDimensions => $"{ImageSource.PixelWidth} x {ImageSource.PixelHeight}";
-
-        public string ImageTitle
+        private BitmapImage _thumbImage = null;
+        public BitmapImage ThumbImage
         {
-            get => String.IsNullOrEmpty(ImageProperties.Title) ? ImageName : ImageProperties.Title;
+            get => _thumbImage;
+            set => SetProperty(ref _thumbImage, value);
+        }
+
+        public string MediaName { get; }
+
+       public string MediaSubTitle { get; }
+
+        public string UID { get;  }
+
+        public string ImageDimensions => $"{ThumbImage.PixelWidth} x {ThumbImage.PixelHeight}";
+
+        string _mediaTitle;
+        public string MediaTitle
+        {
+            get => _mediaTitle;
             set
             {
-                if (ImageProperties.Title != value)
-                {
-                    ImageProperties.Title = value;
-                    var ignoreResult = ImageProperties.SavePropertiesAsync();
-                    OnPropertyChanged();
-                }
+                _mediaTitle = value;
+                OnPropertyChanged();
             }
         }
 
-        public int ImageRating
+        int _mediaRating;
+        public int MediaRating
         {
-            get => (int)ImageProperties.Rating;
+            get => _mediaRating;
             set
             {
-                if (ImageProperties.Rating != value)
-                {
-                    ImageProperties.Rating = (uint)value;
-                    var ignoreResult = ImageProperties.SavePropertiesAsync();
-                    OnPropertyChanged();
-                }
+                _mediaRating = value;
+                OnPropertyChanged();
             }
-        }
-
-        private float _exposure = 0;
-        public float Exposure
-        {
-            get => _exposure;
-            set => SetEditingProperty(ref _exposure, value);
-        }
-
-        private float _temperature = 0;
-        public float Temperature
-        {
-            get => _temperature;
-            set => SetEditingProperty(ref _temperature, value);
-        }
-
-        private float _tint = 0;
-        public float Tint
-        {
-            get => _tint;
-            set => SetEditingProperty(ref _tint, value);
-        }
-
-        private float _contrast = 0;
-        public float Contrast
-        {
-            get => _contrast;
-            set => SetEditingProperty(ref _contrast, value);
-        }
-
-        private float _saturation = 1;
-        public float Saturation
-        {
-            get => _saturation;
-            set => SetEditingProperty(ref _saturation, value);
-        }
-
-        private float _blur = 0;
-        public float Blur
-        {
-            get => _blur;
-            set => SetEditingProperty(ref _blur, value);
-        }
-
-        private bool _needsSaved = false;
-        public bool NeedsSaved
-        {
-            get => _needsSaved;
-            set => SetProperty(ref _needsSaved, value);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-        protected bool SetEditingProperty<T>(ref T storage, T value, [CallerMemberName] String propertyName = null)
-        {
-            if (SetProperty(ref storage, value, propertyName))
-            {
-                if (Exposure != 0 || Temperature != 0 || Tint != 0 || Contrast != 0 || Saturation != 1 || Blur != 0)
-                {
-                    NeedsSaved = true;
-                }
-                else
-                {
-                    NeedsSaved = false;
-                }
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
 
         protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] String propertyName = null)
         {
@@ -154,8 +87,5 @@ namespace MediaLabUWP
                 return true;
             }
         }
-    }
-    class MediaInfo
-    {
     }
 }
