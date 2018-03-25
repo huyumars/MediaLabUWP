@@ -56,6 +56,29 @@ namespace MediaLib
             }
             public static MediaLib instance { get { return _instance; } }
 
+
+            public async Task AsyncInitRootManagersFromLocal()
+            {
+                //load each media
+                foreach (string name in Enum.GetNames(typeof(Config.MediaType)))
+                {
+                    try
+                    {
+                        String rootCofigName = "MediaLib.Lib." + name + "RootConfig";
+                        Config.IRootConfig fakeRootConfig = (Config.IRootConfig)System.Reflection.Assembly.GetExecutingAssembly().CreateInstance(rootCofigName);
+                        foreach (var config in fakeRootConfig.getConfigHelper().Configs())
+                        {
+                            await instance.AsyncAddRoot(config as Config.IRootConfig);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.ERROR("loading" + name + " root manager failed");
+                        Logger.ERROR("Hint: you should rename the rootconfig class name with type+RootConfig in the same namespace, for example: Anime, AnimeRootConifg ");
+                        Logger.ERROR(ex.Message);
+                    }
+                }
+            }
             public void initRootManagersFromLocal()
             {
                 //load each media
@@ -87,6 +110,12 @@ namespace MediaLib
                 foreach (IO.IMediaRootManager mgr in rootManagers.Values)
                     mgr.saveConfig();
             }
+
+            private async Task AsyncAddManager(IO.IMediaRootManager mgr)
+            {
+                await mgr.AsyncLoad();
+                rootManagers.Add(mgr.Prefix, mgr);
+            }
             private void addManager(IO.IMediaRootManager mgr)
             {
                 //ui delegate
@@ -99,6 +128,12 @@ namespace MediaLib
                 mgr.load();
                 rootManagers.Add(mgr.Prefix, mgr);
                 
+            }
+
+            public async Task AsyncAddRoot(Config.IRootConfig rootConfig)
+            {
+                IO.IMediaRootManager mgr = rootConfig.buildRootMangerFromConfig();
+                await AsyncAddManager(mgr);
             }
 
             public void addRoot(Config.IRootConfig rootConfig)

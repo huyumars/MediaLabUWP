@@ -24,7 +24,7 @@ namespace MediaLib
 
             public override MediaFileTraveler getFileTraveler()
             {
-                return new IO.FixDepthFileTraveler(this);
+                return new MediaLabUWP.FileAccess.UWPFixDepthFileTraveler(this);
             }
 
             public override bool valid()
@@ -47,9 +47,6 @@ namespace MediaLib
         {
 
             private const byte fullStar = (byte)EvalType.FiveStars;
-
-            [DataMember]
-            public EvalType star { get; set; }
             public static ImgManager _imgMgr { get {
                     var imgMgrConfig = Config.ConfigHelper<Config.ResourceConfig>.instance.Config("LargeImgResource");
 
@@ -62,6 +59,14 @@ namespace MediaLib
                         mgr.defaultImage = defaultConfig.storePath;
                     return mgr;
                 } }
+            public Anime() { }
+            public Anime(String _UID, String dirPath) : base(_UID, dirPath)
+            {
+                star = 0;
+                if (title != null)
+                    title = refineTitle(title);
+            }
+            
             public Anime(String _UID, System.IO.DirectoryInfo dirPath) : base(_UID, dirPath)
             {
                 star = 0;
@@ -73,7 +78,7 @@ namespace MediaLib
                 set
                 {
                     base.contentDir = value;
-                    title = refineTitle(mPath.Name);
+                    title = refineTitle(value);
                 }
             }
 

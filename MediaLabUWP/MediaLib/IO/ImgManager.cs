@@ -79,6 +79,19 @@ namespace MediaLib
                 return null;
             }
 
+            public async Task<string> ImgFetching(Lib.Media media, string imgPath)
+            {
+                string mediaFile = getMediaFile(media.contentDir);
+                if (mediaFile == null)
+                    return null;
+                string img = await Task.Run(() =>
+                {
+                    CatchImg(mediaFile, imgPath);
+                    return imgPath;
+                });
+                return img;
+            }
+
             public void enqueueImgFetching(Lib.Media media, string imgPath, finishProcessImage finish)
             {
                 string mediaFile = getMediaFile(media.contentDir);
@@ -100,6 +113,8 @@ namespace MediaLib
 
             public string tmpPath { set; get; }
             public abstract void getImageFromMedia(Lib.Media media, finishProcessImage handler);
+
+            public abstract Task<string> AsyncGetImagePathFromMedia(Lib.Media media);
             public abstract String cacheName(Lib.Media media);
             protected static String searchImageFileInDir(String path)
             {
@@ -129,6 +144,32 @@ namespace MediaLib
             }
 
             ThreadQueue readFileQueue = new ThreadQueue();
+
+            public override async Task<string> AsyncGetImagePathFromMedia(Lib.Media media)
+            {
+                Logger.INFO("start process Img for " + media.contentDir);
+                String imagePath = null;
+                //seach in resource cache
+                if (File.Exists(cacheName(media)))
+                    imagePath = cacheName(media);
+
+                //search in media folder
+                if (imagePath == null && Directory.Exists(media.contentDir))
+                {
+                    imagePath = searchImageFileInDir(media.contentDir);
+                    if (imagePath != null)
+                    {
+                        File.Copy(imagePath, cacheName(media));
+                        imagePath = cacheName(media);
+                    }
+                }
+                if (imagePath == null && Directory.Exists(media.contentDir))
+                {
+                    string imgPath = await ffmpegHepler.instance.ImgFetching(media, imagePath);
+                }
+                return imagePath;
+            }
+
             public override void getImageFromMedia(Media media, finishProcessImage handler)
             {
                 Logger.INFO("start process Img for " + media.contentDir);
@@ -243,6 +284,12 @@ namespace MediaLib
             public void getImageFromMedia(Media media, finishProcessImage handler)
             {
                 thumbsHelper.getImageFromMedia(media, handler);
+            }
+
+            public async Task<string> AsyncGetImageFromMedia(Media media)
+            {
+                string r = await thumbsHelper.AsyncGetImagePathFromMedia(media);
+                return r;
             }
 
             public void Dispose()

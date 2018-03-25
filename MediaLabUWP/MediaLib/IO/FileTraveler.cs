@@ -10,6 +10,7 @@ namespace MediaLib
     namespace IO
     {
         public delegate void MediaDirHandler(DirectoryInfo dirName);
+        public delegate Task AsyncMediaDirHandle(String dirPath);
         public delegate void MediaTemplateHandler(String fileName);
        public interface IMediaTravelConfig {
             String dirName { get; set; }
@@ -19,8 +20,10 @@ namespace MediaLib
         {
             protected IMediaTravelConfig config;
             protected MediaDirHandler handler;
+            protected AsyncMediaDirHandle _asyncHandler;
             public MediaFileTraveler(IMediaTravelConfig _config) { config = _config; }
-            public abstract void travel(MediaDirHandler handler);
+            public virtual void travel(MediaDirHandler handler) { }
+            public virtual async Task AsyncTravel(AsyncMediaDirHandle handle) { await handle(""); }
             public MediaTemplateHandler templateHandler;
             public abstract bool isValid(string dir);
         }

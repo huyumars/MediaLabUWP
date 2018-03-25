@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using MediaLib.Lib;
 using System.ComponentModel;
 using System.Threading;
+using MediaLabUWP.FileAccess;
 
 namespace MediaLib
 {
@@ -28,6 +29,7 @@ namespace MediaLib
             void travelMedia(Lib.MediaHandler handler);
             IEnumerable<Lib.Media> getMedium();
             void load();
+            Task AsyncLoad();
             void saveConfig();
              
         }
@@ -52,6 +54,23 @@ namespace MediaLib
                         needDeleteMedia.Add(media.UID);
                 });
                
+            }
+
+            private async Task AsyncBuildPathIndex()
+            {
+                needDeleteMedia = new List<string>();
+                foreach (T media in mediaLib.Values)
+                {
+                    media.enable = enable;
+                    if (await UWPIOImplementation.AsyncGetFolderExists(media.contentDir))
+                    {
+                        pathIndex[media.contentDir] = media.UID;
+                    }
+                    else
+                    {
+                        needDeleteMedia.Add(media.UID);
+                    }
+                }
             }
 
             List<String> needDeleteMedia;
@@ -85,6 +104,11 @@ namespace MediaLib
             }
             public void load()
             {
+                //dir exits?
+                if (Directory.Exists(_config.dirName))
+                    _enable = true;
+                else
+                    _enable = false;
                 if (enable == false)
                 {
                     //guarantee all UI jobs should be in sub-threads
@@ -152,7 +176,52 @@ namespace MediaLib
                 fileWatcher.deleteMediaDir += DeleteMediaDir;
                 fileWatcher.renameMediaDir += RenameMediaDir;
             }
+            public async Task AsyncLoad()
+            {
+                if (await UWPIOImplementation.AsyncGetFolderExists(_config.dirName))
+                {
+                    _enable = true;
+                }
+                else
+                {
+                    _enable = false;
+                }
+                //dir exits?
+               
+                if (enable == false)
+                {
+                    /*
+                    //guarantee all UI jobs should be in sub-threads
+                    worker.DoWork += (object sender, DoWorkEventArgs e) =>
+                    {
+                        updateMediumForListDelegate(this.getMedium());
+                    };
+                    return;
+                    */
+                }
+                else
+                {
+                    await AsyncBuildPathIndex();
+                    await fileTraveler.AsyncTravel(async (String FullName) =>
+                    {
+                        T media = null;
 
+                        if (pathIndex.ContainsKey(FullName))
+                        {
+                            media = (T)getMedia(pathIndex[FullName]);
+                            refineWithTemplate(media);
+                            return;
+                        }
+                        //need to be update
+                        String UID = Lib.MediaLib.assignUID(this);
+                        media = (T)Lib.Media.MediaFactory(FullName, UID, _config.type);
+                        refineWithTemplate(media);
+                        mediaLib[media.UID] = media;
+                        pathIndex[media.contentDir] = media.UID;
+                    });
+                   
+                }
+            }
             void AddMediaDir(String dir)
             {
                 if (fileTraveler.isValid(dir)) {
@@ -187,11 +256,7 @@ namespace MediaLib
                 pathIndex = new Dictionary<string, string>();
                 worker = new BackgroundWorker();
 
-                //dir exits?
-                if (Directory.Exists(config.dirName))
-                    _enable = true;
-                else
-                    _enable = false;
+                _enable = true;
 
                 if (config.mediaDic == null)
                 {

@@ -76,6 +76,8 @@ namespace MediaLib
             void saveConfig();
 
             void foreachConfig(ConfigHandler handler);
+
+             IEnumerable<IConfig> Configs();
         }
 
         public class ConfigHelper<T>: IConfigHelper where T: IConfig, new()
@@ -136,6 +138,11 @@ namespace MediaLib
                 {
                     handler(config);
                 }
+            }
+
+            public IEnumerable<IConfig> Configs()
+            {
+                return configDic.Values as IEnumerable<IConfig>;
             }
         }
     }

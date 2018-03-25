@@ -29,6 +29,7 @@ namespace MediaLabUWP
             MediaTitle = media.title;
             MediaSubTitle = media.contentDir;
             MediaRating = (int)media.star;
+            enable = media.enable;
             ThumbImage = src;
         }
 
@@ -65,6 +66,17 @@ namespace MediaLabUWP
             set
             {
                 _mediaRating = value;
+                OnPropertyChanged();
+            }
+        }
+
+        bool _enable;
+        public bool enable
+        {
+            get =>_enable;
+            set
+            {
+                _enable = value;
                 OnPropertyChanged();
             }
         }

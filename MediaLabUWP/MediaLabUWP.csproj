@@ -95,10 +95,12 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="FileAccess\UWPIOImplementation.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="MediaInfo.cs" />
+    <Compile Include="MediaItemTemplateSelector.cs" />
     <Compile Include="MediaLib\Config\Config.cs" />
     <Compile Include="MediaLib\Config\RootConfig.cs" />
     <Compile Include="MediaLib\Config\TypeDefine.cs" />

@@ -45,11 +45,59 @@
                            HorizontalAlignment="Center" />
         </ItemsPanelTemplate>
 
+        <DataTemplate x:Key="ImageGridView_InvalidItemTemplate"
+                      x:DataType="local:MediaInfo">
+            <Grid Height="{Binding ItemSize, ElementName=page}"
+                  Width="{Binding ItemSize, ElementName=page}"
+                  Margin="{StaticResource LargeItemMargin}"
+                  Background="White">
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Image x:Name="ItemImage"
+                       Source="{x:Bind ThumbImage, Mode=OneWay}"
+                       Stretch="Uniform" />
+                <StackPanel Orientation="Vertical"
+                            Grid.Row="1">
+                    <TextBlock Text="{x:Bind MediaTitle, Mode=OneWay}"
+                               HorizontalAlignment="Center"
+                               Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center">
+                        <TextBlock Text="{x:Bind MediaSubTitle}"
+                                   HorizontalAlignment="Center"
+                                   Style="{StaticResource CaptionTextBlockStyle}" />
+                        <TextBlock Text="{x:Bind ImageDimensions}"
+                                   HorizontalAlignment="Center"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Margin="8,0,0,0" />
+                    </StackPanel>
+                    <telerikInput:RadRating Value="{x:Bind MediaRating, Mode=OneWay}"
+                                            IsReadOnly="True">
+                        <telerikInput:RadRating.FilledIconContentTemplate>
+                            <DataTemplate>
+                                <SymbolIcon Symbol="SolidStar"
+                                            Foreground="White" />
+                            </DataTemplate>
+                        </telerikInput:RadRating.FilledIconContentTemplate>
+                        <telerikInput:RadRating.EmptyIconContentTemplate>
+                            <DataTemplate>
+                                <SymbolIcon Symbol="OutlineStar"
+                                            Foreground="White" />
+                            </DataTemplate>
+                        </telerikInput:RadRating.EmptyIconContentTemplate>
+                    </telerikInput:RadRating>
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+
         <DataTemplate x:Key="ImageGridView_DefaultItemTemplate"
                       x:DataType="local:MediaInfo">
             <Grid Height="{Binding ItemSize, ElementName=page}"
                   Width="{Binding ItemSize, ElementName=page}"
-                  Margin="{StaticResource LargeItemMargin}">
+                  Margin="{StaticResource LargeItemMargin}"
+                  >
                 <Grid.RowDefinitions>
                     <RowDefinition />
                     <RowDefinition Height="Auto" />
@@ -161,8 +209,13 @@
                   RelativePanel.Below="TitleTextBlock"
                   Loaded="{x:Bind StartConnectedAnimationForBackNavigation}"
                   ItemsPanel="{StaticResource ImageGridView_ItemsPanelTemplate}"
-                  ItemTemplate="{StaticResource ImageGridView_DefaultItemTemplate}"
+              
                   ItemContainerStyle="{StaticResource ImageGridView_DefaultItemContainerStyle}">
+            <GridView.ItemTemplateSelector>
+                <local:MediaItemTemplateSelector InvalidItemTemplate="{StaticResource ImageGridView_InvalidItemTemplate}" 
+                                        DefaultItemTemplate="{StaticResource ImageGridView_DefaultItemTemplate}">
+                </local:MediaItemTemplateSelector>
+            </GridView.ItemTemplateSelector>
         </GridView>
 
         <VisualStateManager.VisualStateGroups>

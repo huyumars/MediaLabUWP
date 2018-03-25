@@ -33,14 +33,13 @@ namespace MediaLabUWP
             this.InitializeComponent();
         }
 
-        protected async override void OnNavigatedTo(NavigationEventArgs e)
+
+        private async Task LoadItems()
         {
-            SystemNavigationManager.GetForCurrentView().AppViewBackButtonVisibility =
-                AppViewBackButtonVisibility.Collapsed;
 
-            MediaLib.Lib.MediaLib.instance.initRootManagersFromLocal();
+           await  MediaLib.Lib.MediaLib.instance.AsyncInitRootManagersFromLocal();
+
             StorageFile file = await Package.Current.InstalledLocation.GetFileAsync("Assets\\Default\\Anime.png");
-
             using (IRandomAccessStream fileStream = await file.OpenReadAsync())
             {
                 BitmapImage bitmapImage = new BitmapImage();
@@ -48,9 +47,32 @@ namespace MediaLabUWP
                 MediaLib.Lib.MediaLib.instance.TravelMedium((MediaLib.Lib.Media media) =>
                 {
                     Images.Add(new MediaInfo(media as MediaLib.Lib.Anime, bitmapImage));
-                });
+                });              
+            }
+            foreach(var image in Images)
+            {
+                var media =  MediaLib.Lib.MediaLib.instance.getMedia(image.UID);
+
+                string imagePath = await media.imgMgr.AsyncGetImageFromMedia(media);
+                if (imagePath != null)
+                {
+                    imagePath = imagePath.Replace('/', '\\');
+                    StorageFile imageFile = await StorageFile.GetFileFromPathAsync(imagePath);
+                    using (IRandomAccessStream fileStream = await imageFile.OpenReadAsync())
+                    {
+                        BitmapImage bitmapImage = new BitmapImage();
+                        bitmapImage.SetSource(fileStream);
+                        image.ThumbImage = bitmapImage;
+                    }
+                }
             }
             
+        }
+        protected async override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            SystemNavigationManager.GetForCurrentView().AppViewBackButtonVisibility =
+                AppViewBackButtonVisibility.Collapsed;
+             await LoadItems();      
             base.OnNavigatedTo(e);
         }
 
@@ -69,27 +91,30 @@ namespace MediaLabUWP
                 }
             }
         }
-        
-        private async Task ChangeImage(MediaInfo info)
-        {
-            StorageFile file= await Package.Current.InstalledLocation.GetFileAsync("Assets\\Samples\\1 (113).jpg");
-            
-            using (IRandomAccessStream fileStream = await file.OpenReadAsync())
-            {
-                BitmapImage bitmapImage = new BitmapImage();
-                bitmapImage.SetSource(fileStream);
-                info.ThumbImage = bitmapImage;
-            }
-        }
-        
-        private void ImageGridView_ItemClick(object sender, ItemClickEventArgs e)
-        {
-            // Prepare the connected animation for navigation to the detail page.
-            persistedItem = e.ClickedItem as MediaInfo;
-            ImageGridView.PrepareConnectedAnimation("itemAnimation", e.ClickedItem, "ItemImage");
+      
 
+        int _clickNum;
+        
+        private async void  ImageGridView_ItemClick(object sender, ItemClickEventArgs e)
+        {
+            /*
+            var picker = new Windows.Storage.Pickers.FolderPicker();
+            picker.FileTypeFilter.Add("*");
+            var folder = await picker.PickSingleFolderAsync();
+            StorageApplicationPermissions.FutureAccessList.Add( folder);
+            */
+            // Prepare the connected animation for navigation to the detail page.
+            // persistedItem = e.ClickedItem as MediaInfo;
+            //  ImageGridView.PrepareConnectedAnimation("itemAnimation", e.ClickedItem, "ItemImage");
+            var a = await FileAccess.UWPIOImplementation.AsyncGetFolderExists("z:\\Anime3123");
+             persistedItem = e.ClickedItem as MediaInfo;
+            if (persistedItem.enable)
+            {
+                await Windows.System.Launcher.LaunchFolderAsync(await StorageFolder.GetFolderFromPathAsync(persistedItem.MediaSubTitle));
+            }
+          
+           // System.Diagnostics.Process.Start("explorer.exe", "\"" + persistedItem.MediaSubTitle + "\"");
             // this.Frame.Navigate(typeof(DetailPage), e.ClickedItem);
-          var task =  ChangeImage(persistedItem);
         }
         
 

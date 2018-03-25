@@ -15,6 +15,7 @@ namespace MediaLib.Config
         IConfigHelper getConfigHelper();
 
         IO.IMediaRootManager buildRootMangerFromConfig();
+
         bool valid();
     }
 
@@ -50,5 +51,6 @@ namespace MediaLib.Config
         {
             return new IO.MediaRootManager<T>(this);
         }
+
     }
 }
