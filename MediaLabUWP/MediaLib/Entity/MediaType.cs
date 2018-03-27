@@ -51,7 +51,7 @@ namespace MediaLib
             [DataMember]
             public EvalType star { get; set; }
 
-            public bool enable;
+            public bool enable { get; set; }
 
             public Config.MediaType type { get {
 

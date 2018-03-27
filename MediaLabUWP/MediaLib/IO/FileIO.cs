@@ -187,17 +187,12 @@ namespace MediaLib
                     _enable = false;
                 }
                 //dir exits?
-               
-                if (enable == false)
+               if(enable == false)
                 {
-                    /*
-                    //guarantee all UI jobs should be in sub-threads
-                    worker.DoWork += (object sender, DoWorkEventArgs e) =>
+                    foreach (T media in mediaLib.Values)
                     {
-                        updateMediumForListDelegate(this.getMedium());
-                    };
-                    return;
-                    */
+                        media.enable = false;
+                    }
                 }
                 else
                 {
@@ -212,14 +207,27 @@ namespace MediaLib
                             refineWithTemplate(media);
                             return;
                         }
-                        //need to be update
                         String UID = Lib.MediaLib.assignUID(this);
                         media = (T)Lib.Media.MediaFactory(FullName, UID, _config.type);
                         refineWithTemplate(media);
                         mediaLib[media.UID] = media;
                         pathIndex[media.contentDir] = media.UID;
                     });
-                   
+                    //remove items do not need
+                    foreach (String uid in needDeleteMedia)
+                    {
+                        LockFreeDeleteMedia(uid);
+                    }
+                    //start wathing the directory
+                    if (UWPIOImplementation.CanUseOldApi(_config.dirName))
+                    {
+                        fileWatcher = new MediaWatcher(_config.dirName);
+                        fileWatcher.Start();
+                        fileWatcher.addMediaDir += AddMediaDir;
+                        fileWatcher.deleteMediaDir += DeleteMediaDir;
+                        fileWatcher.renameMediaDir += RenameMediaDir;
+                    }
+
                 }
             }
             void AddMediaDir(String dir)
@@ -289,14 +297,18 @@ namespace MediaLib
                 updateMediaForListDelegate(media);
             }
            static  Mutex mutex = new Mutex();
+            private void LockFreeDeleteMedia(string UID)
+            {
+                Media media = mediaLib[UID];
+                mediaLib.Remove(UID);
+                pathIndex.Remove(media.contentDir);
+                deleteMediaForListDelegate(media);
+            }
             private void deleteMedia(string UID)
             {
                 lock (travelLock)
                 {
-                    Media media = mediaLib[UID];
-                    mediaLib.Remove(UID);
-                    pathIndex.Remove(media.contentDir);
-                    deleteMediaForListDelegate(media);
+                    LockFreeDeleteMedia(UID);
                 }
             }
             public void travelMedia(MediaHandler handler)
@@ -362,10 +374,10 @@ namespace MediaLib
                 {
                     return _config.type.ToString();
                 }
-            }
+            } 
         }
 
-        
+        public delegate void ContentsChange(Windows.Storage.StorageFolder changedFolder);
 
         public delegate void AddMediaDir(String dir);
         public delegate void RenameMediaDir(string oldDir, string newDir);

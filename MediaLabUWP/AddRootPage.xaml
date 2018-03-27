@@ -1,0 +1,38 @@
+﻿<Page
+    x:Class="MediaLabUWP.AddRootPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MediaLabUWP"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" Height="350" Width="1024">
+
+    <StackPanel>
+        
+        <RelativePanel Margin="0,24,0,0">
+            <TextBlock Text="Media Directory" Name="PName" Margin="24,0,24,0" RelativePanel.AlignVerticalCenterWithPanel="True" RelativePanel.AlignLeftWithPanel="True"/>
+            <TextBox Name="PText"  RelativePanel.AlignVerticalCenterWithPanel="True" Margin="24,0,24,0" RelativePanel.LeftOf="PButton" RelativePanel.RightOf="PName"
+                             Text="{x:Bind chosenPath, Mode=TwoWay}"/>
+            <AppBarButton RelativePanel.AlignRightWithPanel="True"   Margin="24,0,24,0"
+                         Name="PButton"
+                        Icon="Folder"
+                        Label="Choose Path"   
+                        Click="AddRootChooseFoler_Click" FlowDirection="LeftToRight"/>
+        </RelativePanel>
+        <RelativePanel Margin="0,24,0,0" >
+            <TextBlock Text="Name"  Name="NText" RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignVerticalCenterWithPanel="True" Margin="24,0,24,0" />
+            <TextBox  Name ="NBox" RelativePanel.AlignRightWithPanel="True"  RelativePanel.RightOf="NText" Margin="24,0,24,0"
+                Text="{x:Bind rootName, Mode=TwoWay}"/>
+        </RelativePanel>
+        <RelativePanel Margin="0,24,0,0" >
+            <TextBlock Text="Search Depth"  Name="SDText" RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignVerticalCenterWithPanel="True" Margin="24,0,24,0" />
+            <TextBox Name="SDBox" RelativePanel.AlignRightWithPanel="True"  RelativePanel.RightOf="SDText" Margin="24,0,24,0" 
+                      Text="{x:Bind depth, Mode=TwoWay}"/>
+        </RelativePanel>
+        <AppBarButton Margin="0,24,0,0"
+                        Icon="Accept"
+                        Label="Finish"  
+                        Click="Finish_Click" HorizontalAlignment="Center"/>
+    </StackPanel>
+    
+</Page>

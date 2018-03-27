@@ -182,7 +182,7 @@
                TargetType="GridViewItem" />
 
     </Page.Resources>
-    
+
     <RelativePanel Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <TextBlock x:Name="TitleTextBlock"
                    Text="Collection"
@@ -196,8 +196,20 @@
             <AppBarButton Icon="Zoom"
                           Label="Zoom"
                           Flyout="{StaticResource zoomFlyout}" />
+            <AppBarButton Icon="Add"
+                          AllowFocusOnInteraction="True"
+                          Label="Add"
+                          Click="addRootButton_Click"
+                           />
         </CommandBar>
-        
+
+        <SearchBox x:Name="mySearchBox" 
+                 FocusOnKeyboardInput="False"
+                QuerySubmitted="mySearchBox_QuerySubmitted"
+                   RelativePanel.LeftOf="MainCommandBar" 
+                   QueryChanged="mySearchBox_QuerySubmitted" 
+                   Margin="0,0,0,0" 
+                   RelativePanel.AlignVerticalCenterWith="MainCommandBar"/>
         <GridView x:Name="ImageGridView"
                   animations:ReorderGridAnimation.Duration="400"
                   Margin="0,0,0,8"

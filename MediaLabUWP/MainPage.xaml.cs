@@ -4,12 +4,14 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
+using Windows.ApplicationModel.Core;
 using Windows.Storage;
 using Windows.Storage.AccessCache;
 using Windows.Storage.Streams;
 using Windows.System.Profile;
 using Windows.UI.Core;
 using Windows.UI.ViewManagement;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Media.Imaging;
@@ -25,7 +27,8 @@ namespace MediaLabUWP
     {
         private MediaInfo persistedItem;
         
-        public ObservableCollection<MediaInfo> Images { get; } = new ObservableCollection<MediaInfo>();
+        public ObservableCollection<MediaInfo> Images { get;  } = new ObservableCollection<MediaInfo>();
+        public Dictionary<string,MediaInfo> ItemCache = new Dictionary<string, MediaInfo>();
         public event PropertyChangedEventHandler PropertyChanged;
 
         public MainPage()
@@ -46,7 +49,9 @@ namespace MediaLabUWP
                 bitmapImage.SetSource(fileStream);
                 MediaLib.Lib.MediaLib.instance.TravelMedium((MediaLib.Lib.Media media) =>
                 {
-                    Images.Add(new MediaInfo(media as MediaLib.Lib.Anime, bitmapImage));
+                    var mediainfo = new MediaInfo(media as MediaLib.Lib.Anime, bitmapImage);
+                    Images.Add(mediainfo);
+                    ItemCache.Add(mediainfo.UID, mediainfo);
                 });              
             }
             foreach(var image in Images)
@@ -73,10 +78,9 @@ namespace MediaLabUWP
             SystemNavigationManager.GetForCurrentView().AppViewBackButtonVisibility =
                 AppViewBackButtonVisibility.Collapsed;
              await LoadItems();      
-            base.OnNavigatedTo(e);
+            base.OnNavigatedTo(e);          
         }
 
-        
         // Called by the Loaded event of the ImageGridView.
         private async void StartConnectedAnimationForBackNavigation()
         {
@@ -91,74 +95,17 @@ namespace MediaLabUWP
                 }
             }
         }
-      
-
-        int _clickNum;
+     
         
         private async void  ImageGridView_ItemClick(object sender, ItemClickEventArgs e)
         {
-            /*
-            var picker = new Windows.Storage.Pickers.FolderPicker();
-            picker.FileTypeFilter.Add("*");
-            var folder = await picker.PickSingleFolderAsync();
-            StorageApplicationPermissions.FutureAccessList.Add( folder);
-            */
-            // Prepare the connected animation for navigation to the detail page.
-            // persistedItem = e.ClickedItem as MediaInfo;
-            //  ImageGridView.PrepareConnectedAnimation("itemAnimation", e.ClickedItem, "ItemImage");
-            var a = await FileAccess.UWPIOImplementation.AsyncGetFolderExists("z:\\Anime3123");
              persistedItem = e.ClickedItem as MediaInfo;
             if (persistedItem.enable)
             {
                 await Windows.System.Launcher.LaunchFolderAsync(await StorageFolder.GetFolderFromPathAsync(persistedItem.MediaSubTitle));
             }
-          
-           // System.Diagnostics.Process.Start("explorer.exe", "\"" + persistedItem.MediaSubTitle + "\"");
-            // this.Frame.Navigate(typeof(DetailPage), e.ClickedItem);
         }
-        
-
-        private async Task GetItemsAsync()
-        {
-            // https://docs.microsoft.com/uwp/api/windows.ui.xaml.controls.image#Windows_UI_Xaml_Controls_Image_Source
-            // See "Using a stream source to show images from the Pictures library".
-            // This code is modified to get images from the app folder.
-
-            // Get the app folder where the images are stored.
-            StorageFolder appInstalledFolder = Package.Current.InstalledLocation;
-            StorageFolder assets = await appInstalledFolder.GetFolderAsync("Assets\\Samples");
-
-            // Get and process files in folder
-            IReadOnlyList<StorageFile> fileList = await assets.GetFilesAsync();
-            foreach (StorageFile file in fileList)
-            {
-                // Limit to only png or jpg files.
-                if (file.ContentType == "image/png" || file.ContentType == "image/jpeg")
-                {
-                    Images.Add(await LoadImageInfo(file));
-                }
-            }
-        }
-
-        public async static Task<MediaInfo> LoadImageInfo(StorageFile file)
-        {
-            // Open a stream for the selected file.
-            // The 'using' block ensures the stream is disposed
-            // after the image is loaded.
-            using (IRandomAccessStream fileStream = await file.OpenReadAsync())
-            {
-                // Create a bitmap to be the image source.
-                BitmapImage bitmapImage = new BitmapImage();
-                bitmapImage.SetSource(fileStream);
-
-                var properties = await file.Properties.GetImagePropertiesAsync();
-                MediaInfo info = new MediaInfo(
-                    properties, file, bitmapImage,
-                    file.DisplayName, file.DisplayType);
-
-                return info;
-            }
-        }
+       
 
         public double ItemSize
         {
@@ -209,6 +156,56 @@ namespace MediaLabUWP
             {
                 ItemSize = ZoomSlider.Value;
             }
+        }
+
+
+        private void updateItems(string text)
+        {
+            Images.Clear();
+            if (text != null && text.Length > 0)
+            {
+                
+                foreach (var item in ItemCache.Values)
+                {
+                    if (item.MediaSubTitle.ToLower().Contains(text.ToLower()))
+                    {
+                        Images.Add(item);
+                    }
+                }
+            }
+            else
+            {
+                foreach (var item in ItemCache.Values)
+                {                 
+                        Images.Add(item);
+                }
+            }
+        }
+        private void mySearchBox_QuerySubmitted(SearchBox sender, SearchBoxQuerySubmittedEventArgs args)
+        {
+            updateItems(args.QueryText);
+        }
+
+        private void mySearchBox_QuerySubmitted(SearchBox sender, SearchBoxQueryChangedEventArgs args)
+        {
+            updateItems(args.QueryText);
+        }
+
+        private async void addRootButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            CoreApplicationView newView = CoreApplication.CreateNewView();
+            int newViewId = 0;
+            await newView.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            {
+                Frame frame = new Frame();
+                frame.Navigate(typeof(AddRootPage), null);
+                Window.Current.Content = frame;
+                // You have to activate the window in order to show it later.
+                Window.Current.Activate();
+                newViewId = ApplicationView.GetForCurrentView().Id;
+              
+            });
+            bool viewShown = await ApplicationViewSwitcher.TryShowAsStandaloneAsync(newViewId);
         }
     }
 }

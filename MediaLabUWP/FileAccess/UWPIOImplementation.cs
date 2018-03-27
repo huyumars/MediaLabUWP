@@ -1,10 +1,12 @@
-﻿using MediaLib.IO;
+﻿using MediaLib;
+using MediaLib.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
+using Windows.Storage.AccessCache;
 
 namespace MediaLabUWP.FileAccess
 {
@@ -20,14 +22,48 @@ namespace MediaLabUWP.FileAccess
             }
             catch(UnauthorizedAccessException ex)
             {
-               await HandleUnauthorizedAccess(ex);
+               await HandleUnauthorizedAccess(ex,path);
             }
             return false;
         
         }
-        static public async Task HandleUnauthorizedAccess(UnauthorizedAccessException ex)
+        static public bool CanUseOldApi(String path)
+        {
+            try
+            {
+                System.IO.DirectoryInfo info = new System.IO.DirectoryInfo(path);
+                info.GetFiles();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+        
+        static public async Task HandleUnauthorizedAccess(UnauthorizedAccessException ex, string path)
         {
 
+            Windows.UI.Popups.MessageDialog msgDialog = new Windows.UI.Popups.MessageDialog("我是一个提示内容"+path) { Title = "提示标题" };
+            msgDialog.Commands.Add(new Windows.UI.Popups.UICommand("确定",null,0));
+            msgDialog.Commands.Add(new Windows.UI.Popups.UICommand("取消",null,1));
+            var result = await msgDialog.ShowAsync();
+            if ((int)result.Id == 0)
+            {
+                await AsyncFolderPicker();
+            }
+        }
+        static public async Task<string> AsyncFolderPicker()
+        {
+            var picker = new Windows.Storage.Pickers.FolderPicker();
+            picker.FileTypeFilter.Add("*");
+            var folder = await picker.PickSingleFolderAsync();
+            if (folder != null)
+            {
+                StorageApplicationPermissions.FutureAccessList.Add(folder);
+                return folder.Path;
+            }
+            return null;
         }
     }
     public class UWPFixDepthFileTraveler : MediaFileTraveler
@@ -60,13 +96,27 @@ namespace MediaLabUWP.FileAccess
             }
             catch (UnauthorizedAccessException ex)
             {
-                await UWPIOImplementation.HandleUnauthorizedAccess(ex);
+                await UWPIOImplementation.HandleUnauthorizedAccess(ex,curFolder.Path);
+            }
+            catch(Exception ex)
+            {
+                Logger.ERROR("meet error when traveling folder: " + curFolder.Path);
             }
         }
-
+        private async Task<bool> AsyncGetValid(string dir)
+        {
+            StorageFolder curDir = await StorageFolder.GetFolderFromPathAsync(dir);
+            for (int i = 0; i < (config as IFixDepthFileTravelerConfig).mediaFileExistDirLevel; i++)
+            {
+                curDir = await curDir.GetParentAsync();
+            }
+            if (curDir.Path == config.dirName)
+                return true;
+            return false;
+        }
         public override bool isValid(string dir)
         {
-            return false;
+            return AsyncGetValid(dir).Result;          
         }
     }
 }
