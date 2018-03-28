@@ -91,22 +91,34 @@ namespace MediaLabUWP
             IRootConfig config = null;
             try
             {
-                String rootCofigName = "MediaLib.Lib." + mType + "RootConfig";
+                if (! await UWPIOImplementation.AsyncGetFolderExists(chosenPath))
+                {
+                    throw new Exception("Path not find");
+                }
+                 String rootCofigName = "MediaLib.Lib." + mType + "RootConfig";
                 config = (IRootConfig)System.Reflection.Assembly.GetExecutingAssembly().CreateInstance(rootCofigName);
                 (config).name = rootCofigName;
                 (config as IFixDepthFileTravelerConfig).dirName = chosenPath;
                 (config as IFixDepthFileTravelerConfig).mediaFileExistDirLevel = int.Parse(d);
-
+                
                await  MediaLib.Lib.MediaLib.instance.AsyncAddRoot(config);
+
                 if ((config).valid())
                 {
-                    
+                    MediaLib.Lib.MediaLib.instance.RefreshUI();
+                    Window.Current.Close();
                 }
-                else throw new Exception();
+                else throw new Exception("config is not valid");
             }
-            catch
+            catch(Exception ex)
             {
-                Logger.ERROR("error");
+                ContentDialog locationPromptDialog = new ContentDialog
+                {
+                    Title = "Create fail",
+                    Content = ex.Message,
+                    PrimaryButtonText = "OK"
+                };
+                ContentDialogResult result = await locationPromptDialog.ShowAsync();
             }
         }
     }

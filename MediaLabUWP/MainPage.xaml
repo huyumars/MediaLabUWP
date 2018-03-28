@@ -19,7 +19,7 @@
         <Thickness x:Key="SmallItemMargin">0</Thickness>
         <x:Int32 x:Key="DesktopWindowSidePaddingValue">16</x:Int32>
         <x:Int32 x:Key="MobileWindowSidePaddingValue">32</x:Int32>
-
+        
         <Flyout x:Key="zoomFlyout">
             <StackPanel>
                 <Slider x:Name="ZoomSlider"

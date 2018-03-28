@@ -60,7 +60,7 @@ namespace MediaLib
             {
                 needDeleteMedia = new List<string>();
                 foreach (T media in mediaLib.Values)
-                {
+                {                 
                     media.enable = enable;
                     if (await UWPIOImplementation.AsyncGetFolderExists(media.contentDir))
                     {

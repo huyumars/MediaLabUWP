@@ -11,16 +11,17 @@ namespace MediaLabUWP
 
     public class MediaInfo : INotifyPropertyChanged
     {
-        public MediaInfo(ImageProperties properties, StorageFile imageFile,
-            BitmapImage src, string name, string type)
+        public enum ImageStatus
         {
-            ThumbImage = src;
-            MediaName = name;
-            MediaSubTitle = type;
-            var rating = (int)properties.Rating;
-            var random = new Random();
-            MediaRating = rating == 0 ? random.Next(1, 5) : rating;
+            //only unload and default will try to get image from folder
+            UnLoad,   
+            Default,
+            //won't get image anymore
+            Loaded,
+            FailedToLoad
         }
+
+
 
         public MediaInfo(MediaLib.Lib.Anime media, BitmapImage src)
         {
@@ -31,7 +32,10 @@ namespace MediaLabUWP
             MediaRating = (int)media.star;
             enable = media.enable;
             ThumbImage = src;
+            imageStatus = ImageStatus.UnLoad;
         }
+
+        public ImageStatus imageStatus { set; get; }
 
         private BitmapImage _thumbImage = null;
         public BitmapImage ThumbImage

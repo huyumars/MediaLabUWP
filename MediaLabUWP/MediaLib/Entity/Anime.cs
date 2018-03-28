@@ -29,7 +29,7 @@ namespace MediaLib
 
             public override bool valid()
             {
-                return base.valid()&&mediaFileExistDirLevel>0&& System.IO.Directory.Exists(dirName) && Config.ConfigHelper<AnimeRootConfig>.instance.Config(dirName) == null;
+                return base.valid()&&mediaFileExistDirLevel>0&& ConfigHelper<AnimeRootConfig>.instance.Config(dirName) == null;
             }
         }
 

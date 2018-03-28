@@ -14,6 +14,11 @@ namespace MediaLib
         public delegate void MediaHandler(Media media);
         public delegate void UpdateMediaForList(Media media);
         public delegate void UpdateMediumForList(IEnumerable<Media> medium);
+
+        interface MediaUI
+        {
+            void refreshAllItem();
+        }
         class MediaLib
         { 
             public Media getMedia(String UID)
@@ -56,7 +61,9 @@ namespace MediaLib
             }
             public static MediaLib instance { get { return _instance; } }
 
-
+            MediaUI _uiPage;
+            public void setUI(MediaUI _ui) { _uiPage = _ui; }
+            public void RefreshUI() { _uiPage.refreshAllItem(); }
             public async Task AsyncInitRootManagersFromLocal()
             {
                 //load each media
@@ -155,6 +162,15 @@ namespace MediaLib
                 }                                  
             }
 
+            void updateMediaForList(Media media)
+            {
+                _uiPage.refreshAllItem();
+            }
+
+            void updateMediumForList(IEnumerable<Media> medium)
+            {
+                _uiPage.refreshAllItem();
+            }
         }
     }
 }
